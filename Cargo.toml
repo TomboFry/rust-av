@@ -1,0 +1,26 @@
+[package]
+name = "av"
+version = "0.1.0"
+authors = ["Tom Gardiner <tom@tombofry.co.uk>"]
+edition = "2018"
+
+[lib]
+name = "lib"
+path = "src/lib/mod.rs"
+
+[[bin]]
+name = "enc"
+path = "src/bin/enc/bin.rs"
+
+[[bin]]
+name = "dec"
+path = "src/bin/dec/bin.rs"
+
+[dependencies]
+cpal = "0.10.0"
+hound = "3.4.0"
+csv = "1.1.1"
+dotenv = "0.14.1"
+rscam = "0.5.5"
+image = "0.22.1"
+rayon = "1.1.0"
