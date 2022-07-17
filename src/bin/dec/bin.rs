@@ -27,6 +27,10 @@ fn read_wav (path : &str) -> Vec<i16> {
 	sqr_sum
 }
 
+fn get_frame_width (samples: &[Vec<u8>]) -> usize {
+	samples.iter().max_by(|x, y| x.len().cmp(&y.len())).unwrap().len()
+}
+
 fn detect_frame_specs (samples: &[SampleType], file: &str) {
 	let mut last_hsync_len = 0;
 	let mut last_vsync_len = 0;
@@ -55,9 +59,9 @@ fn detect_frame_specs (samples: &[SampleType], file: &str) {
 				if last_vsync_len > 0 {
 					last_hsync_len = 0;
 					last_vsync_len = 0;
-					
+
 					let mut image: GrayImage = ImageBuffer::new(
-						frame[0].len() as u32,
+						get_frame_width(&frame) as u32,
 						frame.len() as u32
 					);
 
