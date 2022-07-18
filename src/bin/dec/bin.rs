@@ -31,7 +31,7 @@ fn get_frame_width (samples: &[Vec<u8>]) -> usize {
 	samples.iter().max_by(|x, y| x.len().cmp(&y.len())).unwrap().len()
 }
 
-fn detect_frame_specs (samples: &[SampleType], file: &str) {
+fn detect_frame_specs (samples: &[i16], file: &str) {
 	let mut last_hsync_len = 0;
 	let mut last_vsync_len = 0;
 	let mut frame_current = 0;
@@ -40,59 +40,69 @@ fn detect_frame_specs (samples: &[SampleType], file: &str) {
 	let mut frame: Vec<Vec<u8>> = vec![];
 
 	for sample in samples {
-		match sample {
-			SampleType::Hsync => {
+		if sample >= &i16::MIN && sample < &(i16::MIN + 4096) {
+			last_vsync_len += 1;
+			continue;
+		}
+
+		if sample >= &(i16::MIN + 4096) && sample < &(i16::MIN + 8192) {
+			if last_hsync_len > 0 {
 				last_hsync_len += 1;
-			},
-			SampleType::Vsync => {
-				last_vsync_len += 1;
-			},
-			SampleType::Pixel(pixel) => {
-				// New Line
-				if last_hsync_len > 0 {
-					last_hsync_len = 0;
-					frame.push(line);
-					line = vec![];
-				}
+				continue;
+			}
 
-				// New Frame
-				if last_vsync_len > 0 {
-					last_hsync_len = 0;
-					last_vsync_len = 0;
+			last_vsync_len += 1;
+			continue;
+		}
 
-					let mut image: GrayImage = ImageBuffer::new(
-						get_frame_width(&frame) as u32,
-						frame.len() as u32
+		if sample >= &(i16::MIN + 8192) && sample < &(i16::MIN + 16384) {
+			last_hsync_len += 1;
+			continue;
+		}
+
+		// New Line
+		if last_hsync_len > 0 {
+			last_hsync_len = 0;
+			frame.push(line);
+			line = vec![];
+		}
+
+		// New Frame
+		if last_vsync_len > 0 {
+			last_hsync_len = 0;
+			last_vsync_len = 0;
+
+			let mut image: GrayImage = ImageBuffer::new(
+				get_frame_width(&frame) as u32,
+				frame.len() as u32
+			);
+
+			for (line_index, line) in frame.iter().enumerate() {
+				for (pixel_index, pixel) in line.iter().enumerate() {
+					image.put_pixel(
+						pixel_index as u32,
+						line_index as u32,
+						image::Luma([*pixel])
 					);
-
-					for (line_index, line) in frame.iter().enumerate() {
-						for (pixel_index, pixel) in line.iter().enumerate() {
-							image.put_pixel(
-								pixel_index as u32,
-								line_index as u32,
-								image::Luma([*pixel])
-							);
-						}
-					}
-
-					let image = imageops::resize(
-						&image,
-						image.width() * 4,
-						image.height() * 4,
-						imageops::FilterType::Nearest
-					);
-
-					image
-						.save(&format!("{}-{}.png", file, frame_current))
-						.unwrap();
-					
-					frame_current += 1;
-					frame = vec![];
 				}
+			}
 
-				line.push(*pixel);
-			},
-		};
+			let image = imageops::resize(
+				&image,
+				image.width() * 4,
+				image.height() * 4,
+				imageops::FilterType::Nearest
+			);
+
+			image
+				.save(&format!("{}-{}.png", file, frame_current))
+				.unwrap();
+			
+			frame_current += 1;
+			frame = vec![];
+		}
+		let pixel = ((*sample as i32 + 32768) / 256) as u8;
+		line.push(pixel);
 	}
 }
 
@@ -112,11 +122,11 @@ pub fn main () {
 
 	for file in files_valid {
 		let samples = read_wav(&file);
-		let parsed_samples = samples
-			.into_iter()
-			.map(|sample| parse_sample(sample))
-			.collect::<Vec<_>>();
+		// let parsed_samples = samples
+		// 	.into_iter()
+		// 	.map(|sample| parse_sample(sample))
+		// 	.collect::<Vec<_>>();
 
-		detect_frame_specs(&parsed_samples, &file);
+		detect_frame_specs(&samples, &file);
 	}
 }
