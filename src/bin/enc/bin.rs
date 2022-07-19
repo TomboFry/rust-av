@@ -1,5 +1,7 @@
 extern crate ffmpeg_next as ffmpeg;
 
+use std::{env::args, path::Path};
+
 use ffmpeg::{
 	format::{input, Pixel},
 	media::Type,
@@ -7,7 +9,6 @@ use ffmpeg::{
 	util::frame::video::Video,
 };
 
-use std::{env::args, path};
 use lib::{
 	audio,
 	env::{env, init},
@@ -28,12 +29,11 @@ fn main() -> Result<(), ffmpeg::Error> {
 		.parse::<u32>()
 		.expect("OUTPUT_HEIGHT is not an integer");
 
-
 	// Get list of arguments
 	let arguments = args().skip(1).collect::<Vec<_>>();
 
 	for argument in arguments {
-		let path = path::Path::new(&argument);
+		let path = Path::new(&argument);
 		let mut writer = audio::create_writer(path);
 
 		if let Ok(mut input_context) = input(&path) {
@@ -53,12 +53,13 @@ fn main() -> Result<(), ffmpeg::Error> {
 				decoder.width(),
 				decoder.height(),
 				Pixel::GRAY8,
-				decoder.width(),
-				decoder.height(),
+				width_output,
+				height_output,
 				Flags::BILINEAR,
 			)?;
 
-			let header_frame = image::generate_ppm_header(decoder.width(), decoder.height());
+			let header_frame =
+				image::generate_ppm_header(width_output, height_output);
 
 			let mut frame_index = 0;
 
@@ -97,7 +98,7 @@ fn main() -> Result<(), ffmpeg::Error> {
 			decoder.send_eof()?;
 			receive_and_process_decoded_frames(&mut decoder)?;
 		}
-		
+
 		let _ = writer.finalize();
 	}
 
