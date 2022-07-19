@@ -94,7 +94,7 @@ fn parse_frames (samples: &[i16], path: &Path) {
 			frame = vec![];
 		}
 
-		let pixel = (*sample / 128) as u8;
+		let pixel = (*sample / 128).clamp(0, 255) as u8;
 		line.push(pixel);
 	}
 }
