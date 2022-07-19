@@ -12,7 +12,6 @@ use ffmpeg::{
 use lib::{
 	audio,
 	env::{env, init},
-	frame_wave,
 };
 
 fn main() -> Result<(), ffmpeg::Error> {
