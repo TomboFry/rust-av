@@ -9,11 +9,11 @@ name = "lib"
 path = "src/lib/mod.rs"
 
 [[bin]]
-name = "enc"
+name = "tva-enc"
 path = "src/bin/enc/bin.rs"
 
 [[bin]]
-name = "dec"
+name = "tva-dec"
 path = "src/bin/dec/bin.rs"
 
 [dependencies]
