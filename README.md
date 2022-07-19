@@ -71,6 +71,9 @@ video looks something like this:
 I genuinely think this looks incredible, like an authentic analogue video signal
 with sync issues, noise, and everything!
 
+Ironically, the worst the MP3 quality, the larger the GIF created at the end,
+due to all the noise.
+
 ---
 
 Anyway, I can't imagine this'll ever be of use to anyone, but it was a fun
