@@ -34,13 +34,13 @@ as possible, to make sure it's distinct from the horizontal pulse.
 
 Now, you've generated a frame of data! It should look something like this. You
 can see each horizontal pulse, followed by a vertical pulse at the end, at which
-a new frame starts.
+point a new frame starts.
 
 ![](./images/frame-example.png)
 
 ## Demonstrations
 
-In order to demonstrate wha converting the audio file back into a video signal
+In order to demonstrate what converting the audio file back into a video signal
 looks like, I've used a small sample from [NASA's Perseverance Mars landing
 parachute deployment](https://www.youtube.com/watch?v=4czjS9h4Fpg) (approx. 10
 seconds in - the video on the right-hand side). Of course, our frame size is
