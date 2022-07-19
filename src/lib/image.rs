@@ -1,14 +1,7 @@
 pub fn generate_ppm_header(width: u32, height: u32) -> Vec<u8> {
-	let width: Vec<u8> = width.to_string().chars().map(|x| x as u8).collect();
-	let height: Vec<u8> = height.to_string().chars().map(|x| x as u8).collect();
-
-	// "P6\n"
-	let mut ppm_frame = vec![80, 54, 10];
-	ppm_frame.extend_from_slice(&width);
-	ppm_frame.push(32); // Space character
-	ppm_frame.extend_from_slice(&height);
-	// "\n255\n"
-	ppm_frame.extend_from_slice(&vec![10, 50, 53, 53, 10]);
+	let ppm_frame = format!("P6\n{} {}\n255\n", width, height)
+		.as_bytes()
+		.to_owned();
 
 	ppm_frame
 }
@@ -18,7 +11,7 @@ pub fn generate_raw_pixels(frame: &[u8], header: &[u8], nwidth: u32, nheight: u3
 
 	// Triple each byte
 	let frame: Vec<u8> = frame.iter().fold(vec![], |mut x, y| {
-		x.append(&mut vec![*y, *y, *y]); x
+		x.extend_from_slice(&vec![*y, *y, *y]); x
 	});
 	ppm_frame.extend_from_slice(&frame);
 
