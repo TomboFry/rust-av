@@ -2,18 +2,16 @@ use std::env::args;
 use std::path::Path;
 use image::{ImageBuffer, GrayImage, imageops};
 
-fn read_wav (path : &Path) -> Vec<i16> {
+fn read_wav(path: &Path) -> Vec<i16> {
 	let mut reader = hound::WavReader::open(path).unwrap();
 	let sqr_sum = reader.samples::<i16>().map(|s| s.unwrap()).collect();
 	sqr_sum
 }
 
-fn get_frame_width (samples: &[Vec<u8>]) -> usize {
+fn get_frame_width(samples: &[Vec<u8>]) -> usize {
 	samples
 		.iter()
-		.max_by(|x, y| {
-			x.len().cmp(&y.len())
-		})
+		.max_by(|x, y| x.len().cmp(&y.len()))
 		.unwrap()
 		.len()
 }
@@ -64,7 +62,7 @@ fn parse_frames (samples: &[i16], path: &Path) {
 
 			let mut image: GrayImage = ImageBuffer::new(
 				get_frame_width(&frame) as u32,
-				frame.len() as u32
+				frame.len() as u32,
 			);
 
 			for (line_index, line) in frame.iter().enumerate() {
@@ -72,7 +70,7 @@ fn parse_frames (samples: &[i16], path: &Path) {
 					image.put_pixel(
 						pixel_index as u32,
 						line_index as u32,
-						image::Luma([*pixel])
+						image::Luma([*pixel]),
 					);
 				}
 			}
@@ -81,7 +79,7 @@ fn parse_frames (samples: &[i16], path: &Path) {
 				&image,
 				image.width() * 4,
 				image.height() * 4,
-				imageops::FilterType::Nearest
+				imageops::FilterType::Nearest,
 			);
 
 			image
@@ -102,7 +100,17 @@ fn parse_frames (samples: &[i16], path: &Path) {
 pub fn main () {
 	// Get list of filenames to parse
 	let arguments = args().skip(1).collect::<Vec<_>>();
-	let mut files_valid : Vec<String> = Vec::with_capacity(arguments.len());
+	let mut files_valid: Vec<String> = Vec::with_capacity(arguments.len());
+
+	if arguments.len() == 0 {
+		println!(
+			"Decode TVA audio into a video file
+
+Usage:
+  tva-dec <filenames>..."
+		);
+		return Ok(());
+	}
 
 	// Only use filenames that exist.
 	for arg in arguments {
