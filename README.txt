@@ -1,15 +1,13 @@
-Rust AV
-=======
+TVA - Tom's Video-Audio
+=======================
 
-Converts webcam video into CD-audio compatible file. There's some theory below
-that I used to calculate frame sizes and rates, but really I don't know what I'm
-doing!
+Converts arbitrary video into a CD-audio compatible file. There's some theory
+below that I used to calculate frame sizes and rates, but really I don't know
+what I'm doing!
 
 No guarantees that this works as it was a spontaneous idea I had back in 2019
 and never finished. Uploading here for posterity (and maybe my own future
 reference? 👀)
-
-Requires Linux as it uses v4l2 to capture webcam frames.
 
 ---
 
@@ -27,9 +25,12 @@ Therefore, there's room for 50 lines with horizontal resolution of 88 samples,
 minus 10 samples for the hsync pulse at the end of each line. The final
 total resolution of each frame is 78x50 at 10 Hz.
 
-All values between 0 and 1024 considered vsync.
-All values between 2048 and 3072 considered hsync.
-All values above 4096 (up to 65536, because 16-bit) are brightness values?
+All values between 0 and 48 considered vsync.
+All values between 48 and 96 considered hsync.
+All values above 128 (up to 255) are brightness values?
+
+Because it's 16-bit audio, assume these values are scaled to the min/max
+an unsigned 16-bit integer can store (eg. 0 = -32768, 255 = 32767)
 
 For example:
 
