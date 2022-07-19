@@ -1,6 +1,6 @@
+use image::{imageops, GrayImage, ImageBuffer};
 use std::env::args;
 use std::path::Path;
-use image::{ImageBuffer, GrayImage, imageops};
 
 fn read_wav(path: &Path) -> Vec<i16> {
 	let mut reader = hound::WavReader::open(path).unwrap();
@@ -16,7 +16,7 @@ fn get_frame_width(samples: &[Vec<u8>]) -> usize {
 		.len()
 }
 
-fn parse_frames (samples: &[i16], path: &Path) {
+fn parse_frames(samples: &[i16], path: &Path) {
 	let mut last_hsync_len = 0;
 	let mut last_vsync_len = 0;
 	let mut frame_current = 0;
@@ -25,6 +25,7 @@ fn parse_frames (samples: &[i16], path: &Path) {
 	let mut frame = vec![];
 
 	let input_filename = path.file_stem().to_owned().unwrap().to_str().unwrap();
+
 	for sample in samples {
 		let smpu8 = ((*sample as i32 + i16::MAX as i32) / 256) as u8;
 		if smpu8 < 24 {
@@ -86,8 +87,6 @@ fn parse_frames (samples: &[i16], path: &Path) {
 				.save(&format!("{}-{}.png", input_filename, frame_current))
 				.unwrap();
 
-			// TODO: Add frame to video
-			
 			frame_current += 1;
 			frame = vec![];
 		}
@@ -97,19 +96,20 @@ fn parse_frames (samples: &[i16], path: &Path) {
 	}
 }
 
-pub fn main () {
+pub fn main() {
 	// Get list of filenames to parse
 	let arguments = args().skip(1).collect::<Vec<_>>();
 	let mut files_valid: Vec<String> = Vec::with_capacity(arguments.len());
 
 	if arguments.len() == 0 {
 		println!(
-			"Decode TVA audio into a video file
+			"Decode TVA audio into image files
+(you'll have to do the video conversion, unfortunately.)
 
 Usage:
   tva-dec <filenames>..."
 		);
-		return Ok(());
+		return;
 	}
 
 	// Only use filenames that exist.
@@ -117,7 +117,7 @@ Usage:
 		if Path::new(&arg).exists() {
 			files_valid.push(arg);
 		} else {
-			eprintln!("Skipping file `{}`, does not exist", arg);
+			eprintln!("Skipping `{}`, file does not exist", arg);
 		}
 	}
 
