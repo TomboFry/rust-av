@@ -6,16 +6,23 @@ pub fn generate_ppm_header(width: u32, height: u32) -> Vec<u8> {
 	ppm_frame
 }
 
-pub fn generate_raw_pixels(frame: &[u8], header: &[u8], nwidth: u32, nheight: u32) -> Vec<Vec<u8>> {
+pub fn generate_raw_pixels(
+	frame: &[u8],
+	header: &[u8],
+	nwidth: u32,
+	nheight: u32,
+) -> Vec<Vec<u8>> {
 	let mut ppm_frame = header.to_owned();
 
 	// Triple each byte
 	let frame: Vec<u8> = frame.iter().fold(vec![], |mut x, y| {
-		x.extend_from_slice(&vec![*y, *y, *y]); x
+		x.extend_from_slice(&vec![*y, *y, *y]);
+		x
 	});
 	ppm_frame.extend_from_slice(&frame);
 
-	let img = image::load_from_memory(&ppm_frame).expect("Could not load camera image");
+	let img = image::load_from_memory(&ppm_frame)
+		.expect("Could not load image");
 
 	// // Convert into small, greyscale image
 	let img = img.resize_exact(nwidth, nheight, image::imageops::Nearest);

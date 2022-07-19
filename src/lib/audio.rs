@@ -1,6 +1,6 @@
 use hound::{SampleFormat, WavWriter};
-use std::io::BufWriter;
 use std::fs::File;
+use std::io::BufWriter;
 use std::path::Path;
 
 pub type Writer = WavWriter<BufWriter<File>>;
