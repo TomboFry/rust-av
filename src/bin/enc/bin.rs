@@ -12,7 +12,7 @@ use ffmpeg::{
 use lib::{
 	audio,
 	env::{env, init},
-	frame_wave, image,
+	frame_wave,
 };
 
 fn main() -> Result<(), ffmpeg::Error> {
@@ -58,9 +58,6 @@ fn main() -> Result<(), ffmpeg::Error> {
 				Flags::BILINEAR,
 			)?;
 
-			let header_frame =
-				image::generate_ppm_header(width_output, height_output);
-
 			let mut frame_index = 0;
 
 			let mut receive_and_process_decoded_frames =
@@ -72,13 +69,25 @@ fn main() -> Result<(), ffmpeg::Error> {
 
 						// Converts a single frame into a vector of brightness
 						// values between 128 and 255, into 50 rows of 78 u8's
-						let pixels = image::generate_raw_pixels(rgb_frame.data(0), &header_frame, width_output, height_output);
+						let mut pixels = rgb_frame.data(0)
+							.chunks_exact(width_output as usize + 18)
+							.map(|x| {
+								let mut line = x[..x.len() - 18].iter()
+									.map(|x| (*x as f64 * 0.5) as u8 + 128)
+									.collect::<Vec<u8>>();
+								
+								// Add H-sync pulse to every line
+								line.extend_from_slice(&vec![64u8;10]);
 
-						// Makes sure each row and end of frame contains a
-						// hsync and vsync set of samples respectively
-						let output = frame_wave::convert_frame(&pixels);
-
-						for sample in output {
+								line
+							})
+							.flatten()
+							.collect::<Vec<u8>>();
+						
+						// Add V-sync pulse
+						pixels.extend_from_slice(&vec![0u8;10]);
+						
+						for sample in pixels {
 							let _ = writer.write_sample((sample as i16 - 128) * 256);
 						}
 
