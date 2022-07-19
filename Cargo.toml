@@ -21,6 +21,7 @@ cpal = "0.10.0"
 hound = "3.4.0"
 csv = "1.1.1"
 dotenv = "0.14.1"
-rscam = "0.5.5"
 image = "0.22.1"
 rayon = "1.1.0"
+libc = "0.2.126"
+ffmpeg-next = { version = "4.4.0", features = ["codec", "format"] }
