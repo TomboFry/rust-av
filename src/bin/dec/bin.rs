@@ -2,7 +2,7 @@ use std::env::args;
 use std::path::Path;
 use image::{ImageBuffer, GrayImage, imageops};
 
-fn read_wav (path : &str) -> Vec<i16> {
+fn read_wav (path : &Path) -> Vec<i16> {
 	let mut reader = hound::WavReader::open(path).unwrap();
 	let sqr_sum = reader.samples::<i16>().map(|s| s.unwrap()).collect();
 	sqr_sum
@@ -18,7 +18,7 @@ fn get_frame_width (samples: &[Vec<u8>]) -> usize {
 		.len()
 }
 
-fn parse_frames (samples: &[i16], file: &str) {
+fn parse_frames (samples: &[i16], path: &Path) {
 	let mut last_hsync_len = 0;
 	let mut last_vsync_len = 0;
 	let mut frame_current = 0;
@@ -26,6 +26,7 @@ fn parse_frames (samples: &[i16], file: &str) {
 	let mut line = vec![];
 	let mut frame = vec![];
 
+	let input_filename = path.file_stem().to_owned().unwrap().to_str().unwrap();
 	for sample in samples {
 		let smpu8 = ((*sample as i32 + i16::MAX as i32) / 256) as u8;
 		if smpu8 < 24 {
@@ -56,7 +57,7 @@ fn parse_frames (samples: &[i16], file: &str) {
 			line = vec![];
 		}
 
-		// New Frame
+		// New Frame - Save Previous
 		if last_vsync_len > 0 {
 			last_hsync_len = 0;
 			last_vsync_len = 0;
@@ -84,8 +85,10 @@ fn parse_frames (samples: &[i16], file: &str) {
 			);
 
 			image
-				.save(&format!("{}-{}.png", file, frame_current))
+				.save(&format!("{}-{}.png", input_filename, frame_current))
 				.unwrap();
+
+			// TODO: Add frame to video
 			
 			frame_current += 1;
 			frame = vec![];
@@ -111,7 +114,8 @@ pub fn main () {
 	}
 
 	for file in files_valid {
-		let samples = read_wav(&file);
-		parse_frames(&samples, &file);
+		let path = Path::new(&file);
+		let samples = read_wav(&path);
+		parse_frames(&samples, &path);
 	}
 }
