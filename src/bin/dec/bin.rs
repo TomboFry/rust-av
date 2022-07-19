@@ -1,25 +1,6 @@
 use std::env::args;
 use std::path::Path;
-// use lib::env::{init, env};
 use image::{ImageBuffer, GrayImage, imageops};
-
-enum SampleType {
-	Hsync,
-	Vsync,
-	Pixel(u8)
-}
-
-fn parse_sample (sample : i16) -> SampleType {
-	if sample >= i16::MIN && sample < i16::MIN + 8192 {
-		return SampleType::Vsync;
-	}
-	if sample >= i16::MIN + 8192 && sample < i16::MIN + 16384 {
-		return SampleType::Hsync;
-	}
-
-	let sample_u8 = ((sample as i32 + 32768) / 256) as u8;
-	SampleType::Pixel(sample_u8)
-}
 
 fn read_wav (path : &str) -> Vec<i16> {
 	let mut reader = hound::WavReader::open(path).unwrap();
@@ -28,24 +9,32 @@ fn read_wav (path : &str) -> Vec<i16> {
 }
 
 fn get_frame_width (samples: &[Vec<u8>]) -> usize {
-	samples.iter().max_by(|x, y| x.len().cmp(&y.len())).unwrap().len()
+	samples
+		.iter()
+		.max_by(|x, y| {
+			x.len().cmp(&y.len())
+		})
+		.unwrap()
+		.len()
 }
 
-fn detect_frame_specs (samples: &[i16], file: &str) {
+fn parse_frames (samples: &[i16], file: &str) {
 	let mut last_hsync_len = 0;
 	let mut last_vsync_len = 0;
 	let mut frame_current = 0;
 
 	let mut line = vec![];
-	let mut frame: Vec<Vec<u8>> = vec![];
+	let mut frame = vec![];
 
 	for sample in samples {
-		if sample >= &i16::MIN && sample < &(i16::MIN + 4096) {
+		let smpu8 = ((*sample as i32 + i16::MAX as i32) / 256) as u8;
+		if smpu8 < 24 {
 			last_vsync_len += 1;
 			continue;
 		}
 
-		if sample >= &(i16::MIN + 4096) && sample < &(i16::MIN + 8192) {
+		// Basic error correction, if the sync pulse is ambiguous
+		if smpu8 >= 24 && smpu8 < 48 {
 			if last_hsync_len > 0 {
 				last_hsync_len += 1;
 				continue;
@@ -55,7 +44,7 @@ fn detect_frame_specs (samples: &[i16], file: &str) {
 			continue;
 		}
 
-		if sample >= &(i16::MIN + 8192) && sample < &(i16::MIN + 16384) {
+		if smpu8 >= 48 && smpu8 < 96 {
 			last_hsync_len += 1;
 			continue;
 		}
@@ -101,7 +90,8 @@ fn detect_frame_specs (samples: &[i16], file: &str) {
 			frame_current += 1;
 			frame = vec![];
 		}
-		let pixel = ((*sample as i32 + 32768) / 256) as u8;
+
+		let pixel = (*sample / 128) as u8;
 		line.push(pixel);
 	}
 }
@@ -122,11 +112,6 @@ pub fn main () {
 
 	for file in files_valid {
 		let samples = read_wav(&file);
-		// let parsed_samples = samples
-		// 	.into_iter()
-		// 	.map(|sample| parse_sample(sample))
-		// 	.collect::<Vec<_>>();
-
-		detect_frame_specs(&samples, &file);
+		parse_frames(&samples, &file);
 	}
 }
