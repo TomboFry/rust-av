@@ -54,7 +54,7 @@ fn main() -> Result<(), ffmpeg::Error> {
 				Pixel::GRAY8,
 				width_output,
 				height_output,
-				Flags::BILINEAR,
+				Flags::POINT,
 			)?;
 
 			let mut frame_index = 0;
@@ -74,7 +74,7 @@ fn main() -> Result<(), ffmpeg::Error> {
 								let mut line = x[..x.len() - 18].iter()
 									.map(|x| (*x as f64 * 0.5) as u8 + 128)
 									.collect::<Vec<u8>>();
-								
+
 								// Add H-sync pulse to every line
 								line.extend_from_slice(&vec![64u8;10]);
 
@@ -82,10 +82,10 @@ fn main() -> Result<(), ffmpeg::Error> {
 							})
 							.flatten()
 							.collect::<Vec<u8>>();
-						
+
 						// Add V-sync pulse
 						pixels.extend_from_slice(&vec![0u8;10]);
-						
+
 						for sample in pixels {
 							let _ = writer.write_sample((sample as i16 - 128) * 256);
 						}
