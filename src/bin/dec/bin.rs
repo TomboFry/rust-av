@@ -9,8 +9,7 @@ fn read_wav(path: &Path) -> Vec<i16> {
 }
 
 fn get_frame_width(samples: &[Vec<u8>]) -> usize {
-	samples
-		.iter()
+	samples.iter()
 		.max_by(|x, y| x.len().cmp(&y.len()))
 		.unwrap()
 		.len()
@@ -24,7 +23,8 @@ fn parse_frames(samples: &[i16], path: &Path) {
 	let mut line = vec![];
 	let mut frame = vec![];
 
-	let input_filename = path.file_stem().to_owned().unwrap().to_str().unwrap();
+	let input_filename =
+		path.file_stem().to_owned().unwrap().to_str().unwrap();
 
 	for sample in samples {
 		let smpu8 = ((*sample as i32 + i16::MAX as i32) / 256) as u8;
@@ -67,7 +67,9 @@ fn parse_frames(samples: &[i16], path: &Path) {
 			);
 
 			for (line_index, line) in frame.iter().enumerate() {
-				for (pixel_index, pixel) in line.iter().enumerate() {
+				for (pixel_index, pixel) in
+					line.iter().enumerate()
+				{
 					image.put_pixel(
 						pixel_index as u32,
 						line_index as u32,
@@ -83,9 +85,11 @@ fn parse_frames(samples: &[i16], path: &Path) {
 				imageops::FilterType::Nearest,
 			);
 
-			image
-				.save(&format!("{}-{}.png", input_filename, frame_current))
-				.unwrap();
+			image.save(&format!(
+				"{}-{}.png",
+				input_filename, frame_current
+			))
+			.unwrap();
 
 			frame_current += 1;
 			frame = vec![];
