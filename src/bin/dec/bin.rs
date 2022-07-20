@@ -105,7 +105,10 @@ pub fn main() {
 	let arguments = args().skip(1).collect::<Vec<_>>();
 	let mut files_valid: Vec<String> = Vec::with_capacity(arguments.len());
 
-	if arguments.len() == 0 {
+	if arguments.len() == 0
+		|| arguments[0] == "--help"
+		|| arguments[0] == "-h"
+	{
 		println!(
 			"Decode TVA audio into image files
 (you'll have to do the video conversion, unfortunately.)
